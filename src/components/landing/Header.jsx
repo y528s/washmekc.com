@@ -3,13 +3,15 @@
 
 import React, { useEffect, useState } from "react";
 import { Phone } from "lucide-react";
-import { scrollToQuote } from "./_shared";
+import { scrollToQuote, useWizard } from "./_shared";
 
 const PHONE_DISPLAY = "(913) 701-3077";
 const PHONE_HREF = "tel:+19137013077";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const openWizard = useWizard();
+  const onCta = openWizard || scrollToQuote;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -51,7 +53,7 @@ export default function Header() {
 
           <button
             type="button"
-            onClick={scrollToQuote}
+            onClick={onCta}
             className="btn-cta !py-2.5 !px-4 sm:!px-5 text-sm sm:text-[15px]"
           >
             Get a Free Quote

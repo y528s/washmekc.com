@@ -1,7 +1,7 @@
 // Full-width brand-blue band. Last chance before the form.
 
 import React from "react";
-import { CtaButton, FadeInUp, scrollToQuote } from "./_shared";
+import { CtaButton, FadeInUp } from "./_shared";
 
 export default function FinalPush() {
   return (
@@ -20,7 +20,7 @@ export default function FinalPush() {
           </p>
 
           <div className="mt-8 flex justify-center">
-            <CtaButton onClick={scrollToQuote} ariaLabel="Get my free quote">
+            <CtaButton ariaLabel="Get my free quote">
               Get My Free Quote
             </CtaButton>
           </div>

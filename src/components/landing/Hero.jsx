@@ -5,7 +5,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Star, ShieldCheck, Clock } from "lucide-react";
-import { CtaButton, Eyebrow, Section, scrollToQuote } from "./_shared";
+import { CtaButton, Eyebrow, Section } from "./_shared";
 
 export default function Hero() {
   return (
@@ -32,7 +32,7 @@ export default function Hero() {
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
-            <CtaButton onClick={scrollToQuote} ariaLabel="Get my free quote">
+            <CtaButton ariaLabel="Get my free quote">
               Get My Free Quote
             </CtaButton>
             <a

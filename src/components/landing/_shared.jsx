@@ -4,7 +4,18 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-// Smooth scroll to the quote form. Used by every CTA on the page.
+// Wizard context. Home.jsx provides openWizard(); CTAs anywhere in the
+// tree call useWizard() to launch the booking flow. When no provider is
+// mounted (e.g. running a section in isolation), CTAs gracefully fall
+// back to scrolling to #quote.
+export const WizardContext = React.createContext(null);
+
+export function useWizard() {
+  return React.useContext(WizardContext);
+}
+
+// Default action for any CTA: open the wizard if available, else scroll
+// to the quote section.
 export function scrollToQuote() {
   const el = document.getElementById("quote");
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -62,16 +73,29 @@ export function Eyebrow({ children, className = "" }) {
 }
 
 // Yellow CTA button. The page has exactly one CTA color — this one.
+// If no onClick is passed, defaults to opening the wizard (when a
+// WizardContext provider is mounted) or scrolling to #quote otherwise.
 export function CtaButton({ children, onClick, className = "", as = "button", href, ariaLabel }) {
+  const openWizard = useWizard();
+  const handleClick = (e) => {
+    if (onClick) return onClick(e);
+    if (openWizard) {
+      e.preventDefault?.();
+      openWizard();
+    } else {
+      scrollToQuote();
+    }
+  };
+
   if (as === "a" || href) {
     return (
-      <a href={href} onClick={onClick} className={`btn-cta ${className}`} aria-label={ariaLabel}>
+      <a href={href} onClick={handleClick} className={`btn-cta ${className}`} aria-label={ariaLabel}>
         {children}
       </a>
     );
   }
   return (
-    <button type="button" onClick={onClick} className={`btn-cta ${className}`} aria-label={ariaLabel}>
+    <button type="button" onClick={handleClick} className={`btn-cta ${className}`} aria-label={ariaLabel}>
       {children}
     </button>
   );

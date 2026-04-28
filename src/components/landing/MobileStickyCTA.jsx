@@ -3,10 +3,12 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { scrollToQuote } from "./_shared";
+import { scrollToQuote, useWizard } from "./_shared";
 
 export default function MobileStickyCTA() {
   const [visible, setVisible] = useState(false);
+  const openWizard = useWizard();
+  const onCta = openWizard || scrollToQuote;
 
   useEffect(() => {
     let pastHero = false;
@@ -58,7 +60,7 @@ export default function MobileStickyCTA() {
         >
           <button
             type="button"
-            onClick={scrollToQuote}
+            onClick={onCta}
             className="btn-cta w-full text-[16.5px]"
           >
             Get Free Quote

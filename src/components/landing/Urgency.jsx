@@ -3,9 +3,11 @@
 
 import React from "react";
 import { CalendarClock, ArrowRight } from "lucide-react";
-import { FadeInUp, Section, scrollToQuote } from "./_shared";
+import { FadeInUp, Section, scrollToQuote, useWizard } from "./_shared";
 
 export default function Urgency() {
+  const openWizard = useWizard();
+  const onCta = openWizard || scrollToQuote;
   return (
     <Section className="py-12 sm:py-16">
       <FadeInUp>
@@ -28,7 +30,7 @@ export default function Urgency() {
             </p>
             <button
               type="button"
-              onClick={scrollToQuote}
+              onClick={onCta}
               className="mt-4 inline-flex items-center gap-1.5 font-semibold text-brand hover:text-brand-dark transition-colors"
             >
               Get on the schedule
