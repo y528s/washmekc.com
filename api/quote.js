@@ -147,21 +147,16 @@ export default async function handler(req, res) {
     referer: req.headers['referer'] || req.headers['referrer'] || null,
   });
 
-  // Append to Google Sheets. The sheet schema (Leads!A:R) expects estimator
-  // fields (sqft, stories, estimateLow, etc.) — landing leads don't have
-  // those yet, so they fall through as empty cells, with notes carried
-  // along in the photoUrl slot if it's helpful for the dispatcher. We
-  // write to a "Source: Website-Landing" tag so admin can filter.
+  // Append to Google Sheets. Best-effort — if the env vars aren't configured
+  // on this deploy, or if the Sheets API hiccups, don't fail the request.
+  // The lead is still recoverable from the admin email + Vercel function logs.
   try {
     await appendLeadRow({
       ...lead,
       photoUrl: safeNotes ? `Notes: ${safeNotes}` : '',
     });
   } catch (err) {
-    console.error('[quote] sheets append failed:', err);
-    // Sheets is the durable record. If it fails we still attempt email so
-    // the lead doesn't vanish, but we surface a 500 so the form retries.
-    return res.status(500).json({ error: 'Failed to save quote request. Please call (913) 701-3077.' });
+    console.error('[quote] sheets append failed (non-blocking):', err?.message || err);
   }
 
   // Emails — fire-and-log. Do NOT fail the request on email problems.
