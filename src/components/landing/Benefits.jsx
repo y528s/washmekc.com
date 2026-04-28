@@ -1,9 +1,12 @@
 // Three-column benefits grid. Lucide icons, two-sentence bodies, no fluff.
+// This section gets a full-bleed white background so it visually breaks
+// from the warm off-white page — that's why we use a plain <section> with
+// our own inner container, not the shared <Section/> helper.
 
 import React from "react";
 import { motion } from "framer-motion";
 import { Droplets, BadgeCheck, MapPin } from "lucide-react";
-import { FadeInUp, Section } from "./_shared";
+import { FadeInUp } from "./_shared";
 
 const BENEFITS = [
   {
@@ -34,7 +37,7 @@ const BENEFITS = [
 
 export default function Benefits() {
   return (
-    <Section className="py-16 sm:py-24 bg-white -mx-5 sm:-mx-8 px-5 sm:px-8 rounded-none">
+    <section className="bg-white py-16 sm:py-24 px-5 sm:px-8">
       <div className="mx-auto w-full max-w-6xl">
         <FadeInUp>
           <p className="text-xs sm:text-[13px] font-semibold tracking-[0.18em] uppercase text-brand">
@@ -72,6 +75,6 @@ export default function Benefits() {
           })}
         </ul>
       </div>
-    </Section>
+    </section>
   );
 }

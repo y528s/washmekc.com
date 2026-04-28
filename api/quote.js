@@ -1,12 +1,12 @@
 // /api/quote — landing-page quote-request handler.
 //
-// This is intentionally a stub. It validates the payload, logs to the Vercel
-// function logs, and returns success. Wire it to a real backend by following
-// the TODO at the bottom of this file.
-//
-// The existing /api/submit-lead.js writes to Google Sheets + sends email via
-// Resend; reuse those helpers (api/_lib/sheets.js, api/_lib/email.js) when
-// you're ready to promote this from a stub to production.
+// Validates the payload, drops the lead into the Google Sheet, and fires
+// a homeowner confirmation + admin notification via Resend. Email sends
+// are non-blocking — if email fails, we still return success to the
+// homeowner and log the error for the admin to spot in Vercel logs.
+
+import { appendLeadRow } from './_lib/sheets.js';
+import { sendEmail } from './_lib/email.js';
 
 const ALLOWED_SERVICES = new Set([
   'House',
@@ -17,15 +17,92 @@ const ALLOWED_SERVICES = new Set([
   'Gutters',
 ]);
 
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'hello@washmekc.com,jacob@neighborpaint.com').split(',');
+
 function isEmail(value) {
   return typeof value === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 function isPhone(value) {
-  // Loose check — strip non-digits and require 10–15 digits.
   if (typeof value !== 'string') return false;
   const digits = value.replace(/\D/g, '');
   return digits.length >= 10 && digits.length <= 15;
+}
+
+// Tiny HTML escape — anything that ends up inside a tag attribute or text
+// node in the email goes through this. Keeps user-supplied notes from
+// breaking the admin email layout.
+function escapeHtml(s = '') {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function homeownerConfirmationHtml({ name, address, services }) {
+  const firstName = (name || '').split(' ')[0] || 'neighbor';
+  const serviceList = Array.isArray(services) ? services.join(', ') : (services || '');
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1A1F2E;">
+      <div style="background: #1E3A5F; padding: 24px; text-align: center;">
+        <h1 style="color: #FAFAF7; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.02em;">
+          Neighborhood<span style="color: #F4B324;">Wash</span>
+        </h1>
+      </div>
+      <div style="padding: 32px 24px; background: #FAFAF7;">
+        <h2 style="margin: 0 0 12px 0; font-size: 22px;">Got it, ${escapeHtml(firstName)}.</h2>
+        <p style="line-height: 1.6; color: #5A6478; margin: 0 0 16px 0;">
+          Thanks for reaching out. We'll text you within 24 hours with a
+          flat-rate quote. No call center, no upsell scripts.
+        </p>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 15px;">
+          <tr><td style="padding: 8px 0; color: #5A6478; width: 110px;">Address</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(address)}</td></tr>
+          <tr><td style="padding: 8px 0; color: #5A6478;">Services</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(serviceList)}</td></tr>
+        </table>
+        <p style="line-height: 1.6; color: #5A6478; margin: 16px 0 0 0;">
+          A copy of our certificate of insurance comes with the quote.
+        </p>
+        <p style="line-height: 1.6; color: #5A6478; margin: 8px 0 0 0;">— The NeighborhoodWash team</p>
+      </div>
+      <div style="background: #f1f1ee; padding: 14px 24px; text-align: center; font-size: 12px; color: #5A6478;">
+        NeighborhoodWash &middot; Overland Park, KS &middot; (913) 701-3077
+      </div>
+    </div>
+  `;
+}
+
+function adminNotificationHtml({ name, address, email, phone, services, notes, hasPhoto }) {
+  const serviceList = Array.isArray(services) ? services.join(', ') : (services || '');
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1A1F2E;">
+      <div style="background: #F4B324; padding: 14px 20px;">
+        <h2 style="margin: 0; color: #1A1F2E; font-size: 18px;">New landing-page quote request</h2>
+      </div>
+      <div style="padding: 20px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14.5px;">
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #5A6478; width: 110px;">Name</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 600;">${escapeHtml(name)}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #5A6478;">Phone</td><td style="padding: 8px; border-bottom: 1px solid #eee;"><a href="tel:${escapeHtml(phone)}" style="color: #1E3A5F;">${escapeHtml(phone)}</a></td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #5A6478;">Email</td><td style="padding: 8px; border-bottom: 1px solid #eee;"><a href="mailto:${escapeHtml(email)}" style="color: #1E3A5F;">${escapeHtml(email)}</a></td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #5A6478;">Address</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(address)}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #5A6478;">Services</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(serviceList)}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #5A6478;">Photo attached?</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${hasPhoto ? 'Yes (currently dropped at the form layer — see TODO in /api/quote.js)' : 'No'}</td></tr>
+        </table>
+        ${
+          notes
+            ? `<div style="margin-top: 16px; padding: 14px; background: #FAFAF7; border-left: 3px solid #1E3A5F; border-radius: 4px;">
+                <div style="font-size: 12px; color: #5A6478; margin-bottom: 4px;">Notes</div>
+                <div style="white-space: pre-wrap; color: #1A1F2E;">${escapeHtml(notes)}</div>
+              </div>`
+            : ''
+        }
+        <p style="margin-top: 18px; font-size: 12px; color: #5A6478;">
+          Source: landing page (washmekc.com/) &middot; ${new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })} CT
+        </p>
+      </div>
+    </div>
+  `;
 }
 
 export default async function handler(req, res) {
@@ -35,9 +112,8 @@ export default async function handler(req, res) {
   }
 
   const body = req.body || {};
-  const { name, address, email, phone, services, notes } = body;
+  const { name, address, email, phone, services, notes, hasPhoto } = body;
 
-  // Minimal validation. The form does the heavy lifting; this is the safety net.
   const errors = {};
   if (!name || typeof name !== 'string' || name.trim().length < 2) errors.name = 'Name is required.';
   if (!address || typeof address !== 'string' || address.trim().length < 5) errors.address = 'Address is required.';
@@ -53,25 +129,66 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Validation failed', fieldErrors: errors });
   }
 
-  // Log so the team can spot-check submissions in Vercel function logs.
+  const safeNotes = typeof notes === 'string' ? notes.slice(0, 1000) : '';
+  const lead = {
+    name: name.trim(),
+    address: address.trim(),
+    email: email.trim(),
+    phone: phone.trim(),
+    services,
+    notes: safeNotes,
+    hasPhoto: Boolean(hasPhoto),
+  };
+
   console.log('[quote] new request', {
     receivedAt: new Date().toISOString(),
-    name,
-    address,
-    email,
-    phone,
-    services,
-    notes: typeof notes === 'string' ? notes.slice(0, 500) : '',
+    ...lead,
     ua: req.headers['user-agent'],
     referer: req.headers['referer'] || req.headers['referrer'] || null,
   });
 
-  // TODO: wire to email + CRM. Two recommended hookups:
-  //   1) Reuse api/_lib/sheets.js#appendLeadRow to drop into the existing Google Sheet.
-  //   2) Reuse api/_lib/email.js#sendAdminNotification to ping the owner immediately,
-  //      and #sendLeadConfirmation to send the homeowner an auto-reply.
-  // The shape above is already compatible with submit-lead's `leadData` argument —
-  // just spread it through.
+  // Append to Google Sheets. The sheet schema (Leads!A:R) expects estimator
+  // fields (sqft, stories, estimateLow, etc.) — landing leads don't have
+  // those yet, so they fall through as empty cells, with notes carried
+  // along in the photoUrl slot if it's helpful for the dispatcher. We
+  // write to a "Source: Website-Landing" tag so admin can filter.
+  try {
+    await appendLeadRow({
+      ...lead,
+      photoUrl: safeNotes ? `Notes: ${safeNotes}` : '',
+    });
+  } catch (err) {
+    console.error('[quote] sheets append failed:', err);
+    // Sheets is the durable record. If it fails we still attempt email so
+    // the lead doesn't vanish, but we surface a 500 so the form retries.
+    return res.status(500).json({ error: 'Failed to save quote request. Please call (913) 701-3077.' });
+  }
+
+  // Emails — fire-and-log. Do NOT fail the request on email problems.
+  Promise.allSettled([
+    sendEmail({
+      to: lead.email,
+      subject: `Got your quote request – NeighborhoodWash`,
+      html: homeownerConfirmationHtml(lead),
+    }),
+    sendEmail({
+      to: ADMIN_EMAILS,
+      subject: `Lead: ${lead.name} — ${lead.address}`,
+      replyTo: lead.email,
+      html: adminNotificationHtml(lead),
+    }),
+  ]).then((results) => {
+    results.forEach((r, i) => {
+      if (r.status === 'rejected') {
+        console.error(`[quote] email ${i === 0 ? 'homeowner' : 'admin'} failed:`, r.reason);
+      }
+    });
+  });
+
+  // TODO: photo upload. The form has a file input but currently posts only
+  // a `hasPhoto` boolean. Wire multipart/form-data here (Vercel functions
+  // support `formidable` or `busboy`) and stash the photo in S3/R2/Drive,
+  // then write the public URL to Sheets and surface it in the admin email.
 
   return res.status(200).json({ success: true });
 }

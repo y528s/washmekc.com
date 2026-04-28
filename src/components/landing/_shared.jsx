@@ -11,7 +11,12 @@ export function scrollToQuote() {
 }
 
 // Fade-in-up on scroll. ~24px translate, ~0.5s, runs once.
+// Honors prefers-reduced-motion: degrades to a static block.
 export function FadeInUp({ children, className = "", delay = 0 }) {
+  const reduce = usePrefersReducedMotion();
+  if (reduce) {
+    return <div className={className}>{children}</div>;
+  }
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -23,6 +28,17 @@ export function FadeInUp({ children, className = "", delay = 0 }) {
       {children}
     </motion.div>
   );
+}
+
+// Read prefers-reduced-motion at mount. We don't subscribe to changes
+// because the user toggling it mid-session is not worth the listener.
+export function usePrefersReducedMotion() {
+  const [reduce, setReduce] = React.useState(false);
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    setReduce(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+  return reduce;
 }
 
 // Section container: max-width, horizontal padding, vertical rhythm.

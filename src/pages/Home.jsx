@@ -23,8 +23,15 @@ import MobileStickyCTA from "@/components/landing/MobileStickyCTA";
 export default function Home() {
   return (
     <div className="landing-root min-h-screen">
+      {/* Skip-link for keyboard users — hidden until focused. */}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-cta focus:px-4 focus:py-2 focus:font-semibold focus:text-ink focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
       <Header />
-      <main>
+      <main id="main" tabIndex={-1}>
         <Hero />
         <SocialProof />
         <ProblemAgitation />
