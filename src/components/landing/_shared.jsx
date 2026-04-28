@@ -1,0 +1,102 @@
+// Shared building blocks for the NeighborhoodWash landing page.
+// Keeping these tiny and inline so the page stays grep-able.
+
+import React from "react";
+import { motion } from "framer-motion";
+
+// Wizard context. Home.jsx provides openWizard(); CTAs anywhere in the
+// tree call useWizard() to launch the booking flow. When no provider is
+// mounted (e.g. running a section in isolation), CTAs gracefully fall
+// back to scrolling to #quote.
+export const WizardContext = React.createContext(null);
+
+export function useWizard() {
+  return React.useContext(WizardContext);
+}
+
+// Default action for any CTA: open the wizard if available, else scroll
+// to the quote section.
+export function scrollToQuote() {
+  const el = document.getElementById("quote");
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// Fade-in-up on scroll. ~24px translate, ~0.5s, runs once.
+// Honors prefers-reduced-motion: degrades to a static block.
+export function FadeInUp({ children, className = "", delay = 0 }) {
+  const reduce = usePrefersReducedMotion();
+  if (reduce) {
+    return <div className={className}>{children}</div>;
+  }
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// Read prefers-reduced-motion at mount. We don't subscribe to changes
+// because the user toggling it mid-session is not worth the listener.
+export function usePrefersReducedMotion() {
+  const [reduce, setReduce] = React.useState(false);
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    setReduce(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+  return reduce;
+}
+
+// Section container: max-width, horizontal padding, vertical rhythm.
+export function Section({ id, className = "", children, as: As = "section" }) {
+  return (
+    <As id={id} className={`px-5 sm:px-8 ${className}`}>
+      <div className="mx-auto w-full max-w-6xl">{children}</div>
+    </As>
+  );
+}
+
+// Eyebrow text — small uppercase label that sits above an H1/H2.
+export function Eyebrow({ children, className = "" }) {
+  return (
+    <p
+      className={`text-xs sm:text-[13px] font-semibold tracking-[0.18em] uppercase text-brand ${className}`}
+    >
+      {children}
+    </p>
+  );
+}
+
+// Yellow CTA button. The page has exactly one CTA color — this one.
+// If no onClick is passed, defaults to opening the wizard (when a
+// WizardContext provider is mounted) or scrolling to #quote otherwise.
+export function CtaButton({ children, onClick, className = "", as = "button", href, ariaLabel }) {
+  const openWizard = useWizard();
+  const handleClick = (e) => {
+    if (onClick) return onClick(e);
+    if (openWizard) {
+      e.preventDefault?.();
+      openWizard();
+    } else {
+      scrollToQuote();
+    }
+  };
+
+  if (as === "a" || href) {
+    return (
+      <a href={href} onClick={handleClick} className={`btn-cta ${className}`} aria-label={ariaLabel}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <button type="button" onClick={handleClick} className={`btn-cta ${className}`} aria-label={ariaLabel}>
+      {children}
+    </button>
+  );
+}
