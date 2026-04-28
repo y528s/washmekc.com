@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* shadcn/radix design tokens — kept intact for the rest of the app
+   (estimator, FAQ, contact, etc. all rely on these). */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -38,51 +40,170 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
 }
-
-
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-
   body {
     @apply bg-background text-foreground;
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Landing page utilities. Scoped to .landing-root so they don't bleed into
+   estimator, FAQ, contact, or other existing pages that use shadcn tokens. */
+.landing-root {
+  background-color: #FAFAF7;
+  color: #1A1F2E;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.landing-root h1,
+.landing-root h2,
+.landing-root h3,
+.landing-root h4 {
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  color: #1A1F2E;
+  letter-spacing: -0.02em;
+}
+
+.landing-root ::selection {
+  background-color: #F4B324;
+  color: #1A1F2E;
+}
+
+/* Yellow CTA — used by every primary call-to-action on the landing page. */
+.btn-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #F4B324;
+  color: #1A1F2E;
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+  padding: 0.95rem 1.5rem;
+  border-radius: 9999px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 6px 16px -6px rgba(244, 179, 36, 0.55);
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  min-height: 44px;
+}
+.btn-cta:hover {
+  background-color: #D89A12;
+  transform: scale(1.02);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.06), 0 12px 24px -8px rgba(244, 179, 36, 0.7);
+}
+.btn-cta:focus-visible {
+  outline: 3px solid #1E3A5F;
+  outline-offset: 2px;
+}
+
+/* Secondary outline button — for non-CTA actions. */
+.btn-outline-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: #1E3A5F;
+  border: 1.5px solid #1E3A5F;
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 9999px;
+  transition: background-color 150ms ease, color 150ms ease;
+  min-height: 40px;
+}
+.btn-outline-brand:hover {
+  background-color: #1E3A5F;
+  color: #FAFAF7;
+}
+
+/* Pill chip — service-needed multi-select. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border-radius: 9999px;
+  border: 1.5px solid #E5E7EB;
+  background: #ffffff;
+  color: #1A1F2E;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 140ms ease;
+  min-height: 44px;
+}
+.chip:hover {
+  border-color: #1E3A5F;
+}
+.chip[data-selected="true"] {
+  background-color: #1E3A5F;
+  border-color: #1E3A5F;
+  color: #FAFAF7;
+}
+
+/* Form input. */
+.field {
+  width: 100%;
+  border: 1.5px solid #E5E7EB;
+  background: #ffffff;
+  border-radius: 0.625rem;
+  padding: 0.75rem 0.95rem;
+  font-size: 1rem;
+  color: #1A1F2E;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  min-height: 44px;
+}
+.field:focus {
+  outline: none;
+  border-color: #1E3A5F;
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.15);
+}
+.field::placeholder {
+  color: #9AA3B2;
+}
+
+/* Image placeholder — solid styled block where a real photo drops in. */
+.img-placeholder {
+  background:
+    linear-gradient(135deg, rgba(30, 58, 95, 0.08), rgba(30, 58, 95, 0.02)),
+    repeating-linear-gradient(
+      45deg,
+      rgba(30, 58, 95, 0.04) 0px,
+      rgba(30, 58, 95, 0.04) 12px,
+      transparent 12px,
+      transparent 24px
+    );
+  border: 1px dashed rgba(30, 58, 95, 0.2);
+  color: #5A6478;
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Marquee — pause on hover, respect reduced-motion. */
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none !important;
   }
 }
