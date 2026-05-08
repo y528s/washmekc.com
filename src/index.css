@@ -2,87 +2,168 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base typography. Inter for body, Plus Jakarta Sans for display.
+   Both loaded via <link> in index.html. */
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  html {
+    scroll-behavior: smooth;
   }
-
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  body {
+    background-color: #FAFAF7;
+    color: #1A1F2E;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    color: #1A1F2E;
+    letter-spacing: -0.02em;
+  }
+  ::selection {
+    background-color: #F4B324;
+    color: #1A1F2E;
   }
 }
 
+/* ----- Reusable component classes used by the landing page ----- */
 
+/* Yellow CTA button. The page has exactly one CTA color — this one. */
+.btn-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #F4B324;
+  color: #1A1F2E;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+  padding: 0.95rem 1.5rem;
+  border-radius: 9999px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 6px 16px -6px rgba(244, 179, 36, 0.55);
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  min-height: 44px;
+  cursor: pointer;
+  border: 0;
+}
+.btn-cta:hover {
+  background-color: #D89A12;
+  transform: scale(1.02);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.06), 0 12px 24px -8px rgba(244, 179, 36, 0.7);
+}
+.btn-cta:focus-visible {
+  outline: 3px solid #1E3A5F;
+  outline-offset: 2px;
+}
+.btn-cta:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+/* Secondary outline button — for non-primary actions. */
+.btn-outline-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: #1E3A5F;
+  border: 1.5px solid #1E3A5F;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 9999px;
+  transition: background-color 150ms ease, color 150ms ease;
+  min-height: 40px;
+  cursor: pointer;
+}
+.btn-outline-brand:hover {
+  background-color: #1E3A5F;
+  color: #FAFAF7;
+}
+
+/* Service multi-select chip. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border-radius: 9999px;
+  border: 1.5px solid #E5E7EB;
+  background: #ffffff;
+  color: #1A1F2E;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 140ms ease;
+  min-height: 44px;
+}
+.chip:hover {
+  border-color: #1E3A5F;
+}
+.chip[data-selected='true'] {
+  background-color: #1E3A5F;
+  border-color: #1E3A5F;
+  color: #FAFAF7;
+}
+
+/* Form input. */
+.field {
+  width: 100%;
+  border: 1.5px solid #E5E7EB;
+  background: #ffffff;
+  border-radius: 0.625rem;
+  padding: 0.75rem 0.95rem;
+  font-size: 1rem;
+  color: #1A1F2E;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  min-height: 44px;
+}
+.field:focus {
+  outline: none;
+  border-color: #1E3A5F;
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.15);
+}
+.field::placeholder {
+  color: #9AA3B2;
+}
+
+/* Image placeholder — drop a real <img> in to replace. */
+.img-placeholder {
+  background:
+    linear-gradient(135deg, rgba(30, 58, 95, 0.08), rgba(30, 58, 95, 0.02)),
+    repeating-linear-gradient(
+      45deg,
+      rgba(30, 58, 95, 0.04) 0px,
+      rgba(30, 58, 95, 0.04) 12px,
+      transparent 12px,
+      transparent 24px
+    );
+  border: 1px dashed rgba(30, 58, 95, 0.2);
+  color: #5A6478;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Marquee — pause on hover, respect reduced-motion. */
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none !important;
   }
-
-  body {
-    @apply bg-background text-foreground;
+  html {
+    scroll-behavior: auto;
   }
 }
